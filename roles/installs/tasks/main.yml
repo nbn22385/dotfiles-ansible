@@ -1,0 +1,15 @@
+- name: Install apt packages
+  apt:
+    name: '{{ apt_packages }}'
+    state: latest
+  tags:
+    - apt
+  when: ansible_distribution == "Ubuntu"
+
+- name: Install homebrew packages
+  homebrew:
+    name: '{{ homebrew_packages }}'
+    state: latest
+  tags:
+    - brew
+  when: ansible_distribution == "MacOSX"

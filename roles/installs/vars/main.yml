@@ -1,0 +1,13 @@
+#- name: MacOS variables
+#  include_vars: macos.yml
+#  when: ansible_distribution == "MacOSX"
+#
+#- name: Ubuntu variables
+#  include_vars: ubuntu.yml
+#  when: ansible_distribution == "Ubuntu"
+
+homebrew_packages:
+- ripgrep
+
+apt_packages:
+- ripgrep
