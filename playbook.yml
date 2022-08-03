@@ -126,10 +126,13 @@
   
   - name: Deploy dotfiles
     with_items: '{{ stow_folders }}'
-    shell: "stow --no-folding --restow --dir={{ dotfiles_repo_local_destination }} --target={{ user_home }} {{ item }}"
+    shell:
+      cmd: "stow --no-folding --restow --target={{ user_home }} {{ item }}"
+      chdir: "{{ dotfiles_repo_local_destination }}"
+    when: dotfiles_git_result.before != dotfiles_git_result.after
 
   - name: Install vim plugins
-    shell: exec vim +PackUpdateAndQuit < /dev/tty
-    register: vimresult
-    failed_when: ( vimresult.rc not in [0,1] )
+    shell: "exec vim +PackUpdateAndQuit < /dev/tty"
+    register: vim_plugin_result
+    failed_when: vim_plugin_result.rc != 0
     changed_when: false
