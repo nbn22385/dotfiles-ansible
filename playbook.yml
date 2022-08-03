@@ -12,23 +12,31 @@
 
   tasks:
 
-  # - name: Ensure git is installed
-  #   package:
-  #     name: git
-  #     state: present
+  ###############################################
+  # Ubuntu
+  ###############################################
 
-  # - name: Ensure stow installed
-  #   package:
-  #     name: stow
-  #     state: present
-
-  - name: Ensure fd is installed
-    become_user: root
-    vars:
-      fd_pkg_name: "{{ 'fd-find' if ansible_distribution == 'Ubuntu' else 'fd' }}"
-    package:
-      name: "{{ fd_pkg_name }}"
+  - name: Ensure packages are installed with apt
+    when: ansible_distribution == 'Ubuntu'
+    apt:
+      name:
+        - bat
+        # - cmake
+        - curl
+        - fd-find
+        # - g++
+        - git
+        # - llvm
+        - jq
+        - ripgrep
+        - stow
+        - tmux
+        - tree
+        - vim
+        - zsh
       state: present
+      update_cache: yes
+      cache_valid_time: 604800 # 1 week
 
   - name: Create symlink for fd
     when: ansible_distribution == 'Ubuntu'
@@ -37,11 +45,6 @@
       dest: /usr/local/bin/fd
       state: link
 
-  # - name: Ensure bat is installed
-  #   package:
-  #     name: bat
-  #     state: present
-
   - name: Create symlink for bat
     when: ansible_distribution == 'Ubuntu'
     file:
@@ -49,10 +52,33 @@
       dest: /usr/local/bin/bat
       state: link
 
-  # - name: Ensure ZSH installed
-  #   package:
-  #     name: zsh
-  #     state: present
+  - name: Ensure lazygit is installed
+    when: ansible_distribution == 'Ubuntu'
+    vars:
+      lazygit_version: 0.35
+    unarchive:
+      src: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz"
+      dest: /usr/local/bin
+      extra_opts: 
+        - lazygit
+      remote_src: yes
+
+  - name: Ensure fzf repository is cloned locally
+    become: false
+    git:
+      repo: "https://github.com/junegunn/fzf.git"
+      dest: "{{ user_home }}/.fzf"
+      accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
+    register: fzf_cloned
+
+  - name: Install fzf
+    become: false
+    shell: "~/.fzf/install --completion --key-bindings --no-update-rc"
+    when: fzf_cloned.failed == false
+
+  ###############################################
+  # Common
+  ###############################################
 
   # - name: Ensure zsh is default shell
   #   become: yes
@@ -68,19 +94,6 @@
   #     dest: "{{ user_home }}/.config/base16-shell"
   #     force: yes
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
-
-  - name: Ensure fzf repository is cloned locally
-    become: false
-    git:
-      repo: "https://github.com/junegunn/fzf.git"
-      dest: "{{ user_home }}/.fzf"
-      accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
-    register: fzf_cloned
-
-  - name: Install fzf
-    become: false
-    shell: "~/.fzf/install --completion --key-bindings --no-update-rc"
-    when: fzf_cloned.failed == false
 
   # - name: Ensure powerlevel10k repository is cloned locally
   #   vars:
