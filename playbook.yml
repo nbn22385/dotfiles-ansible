@@ -2,7 +2,6 @@
 
 - hosts: localhost
   connection: local
-  become: true
 
   vars_files:
     - vars.yml
@@ -16,124 +15,128 @@
   # Ubuntu
   ###############################################
 
-  - name: Ensure packages are installed with apt
-    when: ansible_distribution == 'Ubuntu'
-    apt:
-      name:
-        - bat
-        # - cmake
-        - curl
-        - fd-find
-        # - g++
-        - git
-        # - llvm
-        - jq
-        - ripgrep
-        - stow
-        - tmux
-        - tree
-        - vim
-        - zsh
-      state: present
-      update_cache: yes
-      cache_valid_time: 604800 # 1 week
+  # - name: Ensure packages are installed with apt
+  #   when: ansible_distribution == 'Ubuntu'
+  #   apt:
+  #     name:
+  #       - bat
+  #       # - cmake
+  #       - curl
+  #       - fd-find
+  #       # - g++
+  #       - git
+  #       - gnupg
+  #       # - llvm
+  #       - jq
+  #       - ripgrep
+  #       - stow
+  #       - tmux
+  #       - tree
+  #       - vim
+  #       - zsh
+  #     state: present
+  #     update_cache: yes
+  #     cache_valid_time: 604800 # 1 week
+  #   become: true
 
-  - name: Create symlink for fd
-    when: ansible_distribution == 'Ubuntu'
-    file:
-      src: /usr/bin/fdfind
-      dest: /usr/local/bin/fd
-      state: link
+  # - name: Create symlink for fd
+  #   when: ansible_distribution == 'Ubuntu'
+  #   file:
+  #     src: /usr/bin/fdfind
+  #     dest: /usr/local/bin/fd
+  #     state: link
+  #   become: true
 
-  - name: Create symlink for bat
-    when: ansible_distribution == 'Ubuntu'
-    file:
-      src: /usr/bin/batcat
-      dest: /usr/local/bin/bat
-      state: link
+  # - name: Create symlink for bat
+  #   when: ansible_distribution == 'Ubuntu'
+  #   file:
+  #     src: /usr/bin/batcat
+  #     dest: /usr/local/bin/bat
+  #     state: link
+  #   become: true
 
-  - name: Ensure lazygit is installed
-    when: ansible_distribution == 'Ubuntu'
-    vars:
-      lazygit_version: 0.35
-    unarchive:
-      src: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz"
-      dest: /usr/local/bin
-      extra_opts: 
-        - lazygit
-      remote_src: yes
+  # - name: Ensure lazygit is installed
+  #   when: ansible_distribution == 'Ubuntu'
+  #   vars:
+  #     lazygit_version: 0.35
+  #   unarchive:
+  #     src: "https://github.com/jesseduffield/lazygit/releases/download/v{{ lazygit_version }}/lazygit_{{ lazygit_version }}_{{ ansible_system }}_{{ ansible_architecture }}.tar.gz"
+  #     dest: /usr/local/bin
+  #     extra_opts: 
+  #       - lazygit
+  #     remote_src: yes
+  #   become: true
 
   - name: Ensure fzf repository is cloned locally
-    become: false
     git:
       repo: "https://github.com/junegunn/fzf.git"
-      dest: "{{ user_home }}/.fzf"
+      dest: "{{ user_home }}/level/.fzf"
       accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
     register: fzf_cloned
 
   - name: Install fzf
-    become: false
+    when: not fzf_cloned.failed and fzf_cloned.changed
     shell: "~/.fzf/install --completion --key-bindings --no-update-rc"
-    when: fzf_cloned.failed == false
+
+  - name: Add nodejs apt key
+    apt_key:
+      url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+      state: present
+
+  - name: Add nodejs ppa for apt repo
+    apt_repository:
+      repo: deb https://deb.nodesource.com/node_16.x jammy main
+      update_cache: yes
+
+  - name: Ensure nodejs is installed
+    apt:
+      update_cache: yes
+      name: nodejs
+      state: present
 
   ###############################################
   # Common
   ###############################################
 
   # - name: Ensure zsh is default shell
-  #   become: yes
   #   user:
   #     name: "{{ ansible_user_id }}"
   #     shell: /bin/zsh
+  #   become: true
 
   # - name: Ensure base16-shell repository is cloned locally
-  #   vars:
-  #     user_home: "{{ lookup('env', 'HOME') }}"
   #   git:
   #     repo: "https://github.com/base16-project/base16-shell.git"
   #     dest: "{{ user_home }}/.config/base16-shell"
-  #     force: yes
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
 
   # - name: Ensure powerlevel10k repository is cloned locally
-  #   vars:
-  #     user_home: "{{ lookup('env', 'HOME') }}"
   #   git:
   #     repo: "https://github.com/romkatv/powerlevel10k.git"
   #     dest: "{{ user_home }}/.powerlevel10k"
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
-  #   become: false
 
   # - name: Ensure minpac is cloned locally
-  #   vars:
-  #     user_home: "{{ lookup('env', 'HOME') }}"
   #   git:
   #     repo: "https://github.com/k-takata/minpac.git"
   #     dest: "{{ user_home }}/.vim/pack/minpac/opt/minpac"
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
-  #   become: false
 
   # - name: Ensure dotfiles repository is cloned locally
-  #   vars:
-  #     user_home: "{{ lookup('env', 'HOME') }}"
   #   git:
   #     repo: "{{ dotfiles_repo }}"
   #     dest: "{{ user_home }}/.dotfiles"
   #     version: "{{ dotfiles_repo_version }}"
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
-  #   become: false
 
   # - name: Deploy dotfiles
   #   with_items: '{{ stow_folders }}'
   #   vars:
-  #     user_home: "{{ lookup('env', 'HOME') }}"
   #     dotfiles_root: "{{ user_home }}/.dotfiles"
   #   shell: "stow --no-folding --restow --dir={{ dotfiles_root }} --target={{ user_home }} {{ item }}"
   #   changed_when: false
-  #   become: false
 
   # - name: Install vim plugins
   #   shell: "echo -ne '\n' | vim -E -s -c PackUpdateAndQuit"
   #   register: vimresult
   #   failed_when: ( vimresult.rc not in [0,1] )
-
