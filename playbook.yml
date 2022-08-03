@@ -7,17 +7,47 @@
   vars_files:
     - vars.yml
 
+  vars:
+    user_home: "{{ lookup('env', 'HOME') }}"
+
   tasks:
 
   # - name: Ensure git is installed
-  #   ansible.builtin.package:
+  #   package:
   #     name: git
   #     state: present
 
-  # - name: Ensure Stow installed
+  # - name: Ensure stow installed
   #   package:
   #     name: stow
   #     state: present
+
+  - name: Ensure fd is installed
+    become_user: root
+    vars:
+      fd_pkg_name: "{{ 'fd-find' if ansible_distribution == 'Ubuntu' else 'fd' }}"
+    package:
+      name: "{{ fd_pkg_name }}"
+      state: present
+
+  - name: Create symlink for fd
+    when: ansible_distribution == 'Ubuntu'
+    file:
+      src: /usr/bin/fdfind
+      dest: /usr/local/bin/fd
+      state: link
+
+  # - name: Ensure bat is installed
+  #   package:
+  #     name: bat
+  #     state: present
+
+  - name: Create symlink for bat
+    when: ansible_distribution == 'Ubuntu'
+    file:
+      src: /usr/bin/batcat
+      dest: /usr/local/bin/bat
+      state: link
 
   # - name: Ensure ZSH installed
   #   package:
@@ -38,7 +68,19 @@
   #     dest: "{{ user_home }}/.config/base16-shell"
   #     force: yes
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
-  #   become: false
+
+  - name: Ensure fzf repository is cloned locally
+    become: false
+    git:
+      repo: "https://github.com/junegunn/fzf.git"
+      dest: "{{ user_home }}/.fzf"
+      accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
+    register: fzf_cloned
+
+  - name: Install fzf
+    become: false
+    shell: "~/.fzf/install --completion --key-bindings --no-update-rc"
+    when: fzf_cloned.failed == false
 
   # - name: Ensure powerlevel10k repository is cloned locally
   #   vars:
@@ -68,17 +110,17 @@
   #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
   #   become: false
 
-  - name: Deploy dotfiles
-    with_items: '{{ stow_folders }}'
-    vars:
-      user_home: "{{ lookup('env', 'HOME') }}"
-      dotfiles_root: "{{ user_home }}/.dotfiles"
-    shell: "stow --no-folding --restow --dir={{ dotfiles_root }} --target={{ user_home }} {{ item }}"
-    changed_when: false
-    become: false
+  # - name: Deploy dotfiles
+  #   with_items: '{{ stow_folders }}'
+  #   vars:
+  #     user_home: "{{ lookup('env', 'HOME') }}"
+  #     dotfiles_root: "{{ user_home }}/.dotfiles"
+  #   shell: "stow --no-folding --restow --dir={{ dotfiles_root }} --target={{ user_home }} {{ item }}"
+  #   changed_when: false
+  #   become: false
 
-  - name: Install vim plugins
-    shell: "echo -ne '\n' | vim -E -s -c PackUpdateAndQuit"
-    register: vimresult
-    failed_when: ( vimresult.rc not in [0,1] )
+  # - name: Install vim plugins
+  #   shell: "echo -ne '\n' | vim -E -s -c PackUpdateAndQuit"
+  #   register: vimresult
+  #   failed_when: ( vimresult.rc not in [0,1] )
 
