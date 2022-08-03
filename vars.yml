@@ -1,13 +1,16 @@
 ---
+accept_hostkey: true
+user_home: "{{ lookup('env', 'HOME') }}"
+
 dotfiles_repo: "https://github.com/nbn22385/dotfiles.git"
 dotfiles_repo_version: master
-dotfiles_repo_accept_hostkey: true
-dotfiles_repo_local_destination: "~/dotfiles"
-dotfiles_home: "~"
-accept_hostkey: true
-dotfiles_repo: https://github.com/nbn22385/dotfiles
+dotfiles_repo_local_destination: "{{ user_home }}/dotfiles"
+dotfiles_home: "{{ user_home }}"
+
 lazygit_version: 0.35
+
 nodejs_version: 16
+
 stow_folders:
   - config
   - tmux
