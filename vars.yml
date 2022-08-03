@@ -1,0 +1,18 @@
+---
+dotfiles_repo: "https://github.com/nbn22385/dotfiles.git"
+dotfiles_repo_version: master
+dotfiles_repo_accept_hostkey: true
+dotfiles_repo_local_destination: "~/dotfiles"
+dotfiles_home: "~"
+dotfiles_files:
+  - config/.config
+  - tmux/.tmux.conf
+  - vim/.vim
+  - zsh/.p10k.zsh
+  - zsh/.zshenv
+  - zsh/.zshrc
+stow_folders:
+  - config
+  - tmux
+  - vim
+  - zsh

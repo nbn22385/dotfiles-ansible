@@ -1,2 +1,14 @@
 apt_packages:
-- ripgrep
+  - bat
+  - cmake
+  - curl
+  - fd-find
+  - g++
+  - git
+  - llvm
+  - ripgrep
+  - stow
+  - tmux
+  - tree
+  - vim
+  - zsh

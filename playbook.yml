@@ -2,5 +2,83 @@
 
 - hosts: localhost
   connection: local
-  roles:
-  - installs
+  become: true
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+
+  # - name: Ensure git is installed
+  #   ansible.builtin.package:
+  #     name: git
+  #     state: present
+
+  # - name: Ensure Stow installed
+  #   package:
+  #     name: stow
+  #     state: present
+
+  # - name: Ensure ZSH installed
+  #   package:
+  #     name: zsh
+  #     state: present
+
+  # - name: Ensure zsh is default shell
+  #   become: yes
+  #   user:
+  #     name: "{{ ansible_user_id }}"
+  #     shell: /bin/zsh
+
+  # - name: Ensure base16-shell repository is cloned locally
+  #   vars:
+  #     user_home: "{{ lookup('env', 'HOME') }}"
+  #   git:
+  #     repo: "https://github.com/base16-project/base16-shell.git"
+  #     dest: "{{ user_home }}/.config/base16-shell"
+  #     force: yes
+  #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
+  #   become: false
+
+  # - name: Ensure powerlevel10k repository is cloned locally
+  #   vars:
+  #     user_home: "{{ lookup('env', 'HOME') }}"
+  #   git:
+  #     repo: "https://github.com/romkatv/powerlevel10k.git"
+  #     dest: "{{ user_home }}/.powerlevel10k"
+  #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
+  #   become: false
+
+  # - name: Ensure minpac is cloned locally
+  #   vars:
+  #     user_home: "{{ lookup('env', 'HOME') }}"
+  #   git:
+  #     repo: "https://github.com/k-takata/minpac.git"
+  #     dest: "{{ user_home }}/.vim/pack/minpac/opt/minpac"
+  #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
+  #   become: false
+
+  # - name: Ensure dotfiles repository is cloned locally
+  #   vars:
+  #     user_home: "{{ lookup('env', 'HOME') }}"
+  #   git:
+  #     repo: "{{ dotfiles_repo }}"
+  #     dest: "{{ user_home }}/.dotfiles"
+  #     version: "{{ dotfiles_repo_version }}"
+  #     accept_hostkey: "{{ dotfiles_repo_accept_hostkey }}"
+  #   become: false
+
+  - name: Deploy dotfiles
+    with_items: '{{ stow_folders }}'
+    vars:
+      user_home: "{{ lookup('env', 'HOME') }}"
+      dotfiles_root: "{{ user_home }}/.dotfiles"
+    shell: "stow --no-folding --restow --dir={{ dotfiles_root }} --target={{ user_home }} {{ item }}"
+    changed_when: false
+    become: false
+
+  - name: Install vim plugins
+    shell: "echo -ne '\n' | vim -E -s -c PackUpdateAndQuit"
+    register: vimresult
+    failed_when: ( vimresult.rc not in [0,1] )
+
