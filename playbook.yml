@@ -152,7 +152,7 @@
         accept_hostkey: "{{ accept_hostkey }}"
 
     - name: Install vim plugins
-      command: vim --no-plugin +'packadd minpac' +PackUpdateAndQuit < /dev/tty
+      command: vim --noplugin +'packadd minpac' +PackUpdateAndQuit < /dev/tty
       register: vim_plugin_result
       failed_when: vim_plugin_result.rc != 0
       changed_when: false
