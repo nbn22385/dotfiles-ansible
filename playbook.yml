@@ -142,7 +142,7 @@
       command:
         cmd: "stow --no-folding --restow --target={{ user_home }} {{ item }}"
         chdir: "{{ dotfiles_repo_local_destination }}"
-      when: dotfiles_git_result.before != dotfiles_git_result.after
+      changed_when: false
 
     - name: Ensure minpac is cloned locally
       git:
