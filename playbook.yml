@@ -11,6 +11,20 @@
     # Ubuntu
     ###############################################
 
+    - name: Add nodejs apt key
+      when: ansible_distribution == 'Ubuntu'
+      apt_key:
+        url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+        state: present
+      become: true
+
+    - name: Add nodejs ppa for apt repo
+      when: ansible_distribution == 'Ubuntu'
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x jammy main"
+        update_cache: true
+      become: true
+
     - name: Ensure packages are installed with apt
       when: ansible_distribution == 'Ubuntu'
       apt:
@@ -22,8 +36,9 @@
           # - g++
           - git
           - gnupg
-          # - llvm
           - jq
+          # - llvm
+          - nodejs
           - ripgrep
           - stow
           - tmux
@@ -81,6 +96,7 @@
         repo: "https://github.com/junegunn/fzf.git"
         version: master
         dest: "{{ user_home }}/.fzf"
+        single_branch: true
         accept_hostkey: "{{ accept_hostkey }}"
       register: fzf_git_result
 
@@ -89,25 +105,6 @@
       when:
         - ansible_distribution == 'Ubuntu'
         - fzf_git_result.before != fzf_git_result.after
-
-    - name: Add nodejs apt key
-      when: ansible_distribution == 'Ubuntu'
-      apt_key:
-        url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
-        state: present
-
-    - name: Add nodejs ppa for apt repo
-      when: ansible_distribution == 'Ubuntu'
-      apt_repository:
-        repo: "deb https://deb.nodesource.com/node_{{ nodejs_version }}.x jammy main"
-        update_cache: true
-
-    - name: Ensure nodejs is installed
-      when: ansible_distribution == 'Ubuntu'
-      apt:
-        update_cache: true
-        name: nodejs
-        state: present
 
     ###############################################
     # Common
@@ -124,6 +121,7 @@
         repo: "https://github.com/base16-project/base16-shell.git"
         version: main
         dest: "{{ user_home }}/.config/base16-shell"
+        single_branch: true
         accept_hostkey: "{{ accept_hostkey }}"
 
     - name: Ensure powerlevel10k repository is cloned locally
@@ -131,6 +129,7 @@
         repo: "https://github.com/romkatv/powerlevel10k.git"
         version: master
         dest: "{{ user_home }}/.powerlevel10k"
+        single_branch: true
         accept_hostkey: "{{ accept_hostkey }}"
 
     - name: Ensure minpac is cloned locally
@@ -138,13 +137,15 @@
         repo: "https://github.com/k-takata/minpac.git"
         version: master
         dest: "{{ user_home }}/.vim/pack/minpac/opt/minpac"
+        single_branch: true
         accept_hostkey: "{{ accept_hostkey }}"
 
     - name: Ensure dotfiles repository is cloned locally
       git:
         repo: "{{ dotfiles_repo }}"
-        dest: "{{ dotfiles_repo_local_destination }}"
         version: "{{ dotfiles_repo_version }}"
+        dest: "{{ dotfiles_repo_local_destination }}"
+        single_branch: true
         accept_hostkey: "{{ accept_hostkey }}"
       register: dotfiles_git_result
 
