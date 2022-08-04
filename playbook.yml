@@ -122,7 +122,7 @@
     - name: Ensure base16-shell repository is cloned locally
       git:
         repo: "https://github.com/base16-project/base16-shell.git"
-        version: master
+        version: main
         dest: "{{ user_home }}/.config/base16-shell"
         accept_hostkey: "{{ accept_hostkey }}"
 
