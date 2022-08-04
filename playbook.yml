@@ -157,7 +157,7 @@
       when: dotfiles_git_result.before != dotfiles_git_result.after
 
     - name: Install vim plugins
-      shell: "exec vim +PackUpdateAndQuit < /dev/tty"
+      command: "exec vim +PackUpdateAndQuit < /dev/tty"
       register: vim_plugin_result
       failed_when: vim_plugin_result.rc != 0
       changed_when: false
