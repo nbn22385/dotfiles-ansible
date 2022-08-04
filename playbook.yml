@@ -58,7 +58,7 @@
     - name: Create symlink for fd
       when:
         - ansible_distribution == 'Ubuntu'
-        - fd_link.stat.islnk is defined and fd_link.stat.islnk
+        - not fd_link.stat.exists
       file:
         src: /usr/bin/fdfind
         dest: /usr/local/bin/fd
@@ -73,7 +73,7 @@
     - name: Create symlink for bat
       when:
         - ansible_distribution == 'Ubuntu'
-        - bat_link.stat.islnk is defined and bat_link.stat.islnk
+        - not bat_link.stat.exists
       file:
         src: /usr/bin/batcat
         dest: /usr/local/bin/bat
@@ -142,7 +142,7 @@
       command:
         cmd: "stow --no-folding --restow --target={{ user_home }} {{ item }}"
         chdir: "{{ dotfiles_repo_local_destination }}"
-      when: dotfiles_git_result.before != dotfiles_git_result.after
+      # when: dotfiles_git_result.before != dotfiles_git_result.after
 
     - name: Ensure minpac is cloned locally
       git:
