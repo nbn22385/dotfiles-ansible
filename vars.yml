@@ -3,9 +3,11 @@ accept_hostkey: true
 user_home: "{{ lookup('env', 'HOME') }}"
 
 dotfiles_repo: "https://github.com/nbn22385/dotfiles.git"
-dotfiles_repo_version: master
 dotfiles_repo_local_destination: "{{ user_home }}/dotfiles"
-dotfiles_home: "{{ user_home }}"
+dotfiles_repo_version: master
+dotfiles_brewfile: "{{ dotfiles_repo_local_destination }}/extras/Brewfile"
+
+clang_version: 12
 
 lazygit_version: 0.35
 
